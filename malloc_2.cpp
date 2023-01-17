@@ -194,7 +194,7 @@ void * scalloc (size_t num, size_t size)
 {
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
-    if (_num_free_bytes() >= size)
+    if (_num_free_bytes() >= num*size)
     {
         void* p = findFreeBlock(num*size);
         if (p != nullptr)
