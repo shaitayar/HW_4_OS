@@ -233,9 +233,9 @@ void * srealloc(void * oldp, size_t size)
     void* new_p = smalloc(size);
     if (new_p == nullptr)
         return nullptr;
-//    old_meta->setIsFree(true);
+    old_meta->setIsFree(true);
     memmove(new_p, oldp, size);
-    return ((char*)new_p) +_size_meta_data();
+    return new_p;
 }
 
 
