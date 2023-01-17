@@ -159,7 +159,7 @@ void insertZeroes(void* p, size_t size)
 }
 
 void * smalloc (size_t size){
-    if (size == 0 || size > MAX_SIZE) {return nullptr;}
+    if (size == 0 || size >= MAX_SIZE) {return nullptr;}
 
     if (_num_free_bytes() >= size)
     {
