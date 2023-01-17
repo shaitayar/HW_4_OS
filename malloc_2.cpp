@@ -192,7 +192,7 @@ void * scalloc (size_t num, size_t size)
         if (p != nullptr)
         {
             void* inside_data = (void*)(((char*)p) + _size_meta_data());
-            insertZeroes(p, num*size);
+            insertZeroes(inside_data, num*size);
             ((MallocMetadata*)p)->setIsFree(false);
             return ((char*)p) + _size_meta_data();
         }
