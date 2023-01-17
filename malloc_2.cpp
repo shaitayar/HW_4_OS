@@ -222,7 +222,7 @@ void sfree (void * p) // todo: does p points to the block with or without metada
 {
     if (p == nullptr)
         return;
-    MallocMetadata* meta_ptr = ((MallocMetadata*)((char*)p) - _size_meta_data()); // if p doesnt point to meta data then just reduct sizeof(meta)
+    MallocMetadata* meta_ptr = ((MallocMetadata*)(((char*)p) - _size_meta_data())); // if p doesnt point to meta data then just reduct sizeof(meta)
     meta_ptr->setIsFree(true);
 }
 

@@ -1,7 +1,4 @@
-"C:\Program Files\JetBrains\CLion 2022.1\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/JetBrains/CLion 2022.1/bin/ninja/win/ninja.exe" -G Ninja -S C:\Users\yoavg\Desktop\HW_4_OS -B C:\Users\yoavg\Desktop\HW_4_OS\cmake-build-debug
-CMake Error at CMakeLists.txt:7 (add_subdirectory):
-  add_subdirectory given source "tests" which is not an existing directory.
-
-
--- Configuring incomplete, errors occurred!
-See also "C:/Users/yoavg/Desktop/HW_4_OS/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+/usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/student/tmp/tmp.jPy4DZNf3t -B /home/student/tmp/tmp.jPy4DZNf3t/cmake-build-debug
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/student/tmp/tmp.jPy4DZNf3t/cmake-build-debug
