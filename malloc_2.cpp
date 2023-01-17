@@ -186,27 +186,30 @@ void * scalloc (size_t num, size_t size)
 {
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
-    if (_num_free_bytes() >= num*size)
-    {
-        void* p = findFreeBlock(num*size);
-        if (p != nullptr)
-        {
-            void* inside_data = (void*)(((char*)p) + _size_meta_data());
-            insertZeroes(inside_data, num*size);
-            ((MallocMetadata*)p)->setIsFree(false);
-            return ((char*)p) + _size_meta_data();
-        }
-    }
-
-    size_t size_with_meta = size*num + _size_meta_data();
-    MallocMetadata new_meta = MallocMetadata(size, false);
-    void* p = sbrk(size_with_meta);
-    if((intptr_t)p == -1)
-        return nullptr;
-    MallocMetadata* meta_ptr = (MallocMetadata*)p;
-    *meta_ptr = new_meta;
-    pushBackToMeta(meta_ptr);
-    return ((char*)p) + _size_meta_data();
+    void* p = smalloc(num*size);
+    memset(p, 0, num*size);
+    return p;
+//    if (_num_free_bytes() >= num*size)
+//    {
+//        void* p = findFreeBlock(num*size);
+//        if (p != nullptr)
+//        {
+//            void* inside_data = (void*)(((char*)p) + _size_meta_data());
+//            insertZeroes(inside_data, num*size);
+//            ((MallocMetadata*)p)->setIsFree(false);
+//            return ((char*)p) + _size_meta_data();
+//        }
+//    }
+//
+//    size_t size_with_meta = size*num + _size_meta_data();
+//    MallocMetadata new_meta = MallocMetadata(size, false);
+//    void* p = sbrk(size_with_meta);
+//    if((intptr_t)p == -1)
+//        return nullptr;
+//    MallocMetadata* meta_ptr = (MallocMetadata*)p;
+//    *meta_ptr = new_meta;
+//    pushBackToMeta(meta_ptr);
+//    return ((char*)p) + _size_meta_data();
 
 }
 
