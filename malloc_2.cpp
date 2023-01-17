@@ -188,7 +188,7 @@ void * smalloc (size_t size){
     MallocMetadata* meta_ptr = ((MallocMetadata*)p);
     *meta_ptr = new_meta;
     pushBackToMeta(meta_ptr);
-    return ((char*)p) + _size_meta_data(); // need to return the address excluding the meta struct
+    return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
 }
 
 void * scalloc (size_t num, size_t size) 
