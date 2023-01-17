@@ -14,7 +14,8 @@ class MallocMetadata{
 
 public:
     MallocMetadata(size_t size, bool is_free):size(size), is_free(is_free), next(nullptr), prev(nullptr){}
-
+    MallocMetadata(size_t size, bool is_free, MallocMetadata* next, MallocMetadata * prev):
+    size(size), is_free(is_free), next(next), prev(prev){}
     size_t getSize(){return this->size;}
     bool getIsFree(){return is_free;}
     MallocMetadata* getNext(){return next;}
@@ -141,6 +142,10 @@ size_t min(size_t x, size_t y)
     return x<=y ? x : y;
 }
 
+/*
+ * This function find the fittest block to size of bytes
+ * Returns a pointer to the fittest block found.
+ */
 void* findFreeBlock(size_t size)
 {
     MallocMetadata* it = meta_data_list;
@@ -161,6 +166,27 @@ void* findFreeBlock(size_t size)
     return it_min;
 }
 
+
+/*
+ * This function gets a pointer to a block and split the block if it's possible
+ */
+void splitBlock(MallocMetadata* ptr, size_t size)
+{
+    if(ptr->getSize() >= (128 + _size_meta_data() + size))
+    {
+        size_t next_block_size = ptr->getSize() - (_size_meta_data() + size);
+        MallocMetadata new_meta = MallocMetadata(next_block_size, true, ptr->getNext(), ptr);
+        ptr->setSize(size);
+        if (ptr->getNext() != nullptr)
+            (ptr->getNext())->setPrev(new_meta);
+        ptr->setNext(new_meta);
+
+        void* enter_new_meta = ((char*)ptr) + size + _size_meta_data();
+        MallocMetadata* new_meta_ptr = (MallocMetadata*)enter_new_meta;
+        *new_meta_ptr = new_meta;
+    }
+
+}
 // /*
 // This function finds size of freed bytes in a row and return a pointer to the metadata of the first block
 // out of the sequence of blocks it found
@@ -210,6 +236,7 @@ void * smalloc (size_t size){
         if (p != nullptr)
         {
             ((MallocMetadata*)p)->setIsFree(false);
+            splitBlock((MallocMetadata*)p, size);
             return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
         }
     } // could not find free block in the proper size, therfore us sbrk
