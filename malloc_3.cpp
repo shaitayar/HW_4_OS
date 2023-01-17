@@ -150,7 +150,7 @@ size_t min(size_t x, size_t y)
 void* findFreeBlock(size_t size)
 {
     MallocMetadata* it = meta_data_list;
-    size_t min_size = _num_free_bytes();
+    size_t min_size = _num_free_bytes()+1;
     MallocMetadata* it_min = nullptr;
     while(it != nullptr)
     {
@@ -362,18 +362,30 @@ void * srealloc(void * oldp, size_t size)
     return new_p;
 }
 
+/*int main() {
 
-//int main() {
-//
-//    void* p = sbrk(0);
-//    void* a = smalloc(1);
-//    void* b = smalloc(10);
-//
-//    std::cout << "p: " << (int*)p << std::endl;
-//    std::cout << "a: " << (int*)a << std::endl;
-//    std::cout << "b: " << (int*)b << std::endl;
-//
-//    sfree(a);
-//    sfree(b);
-//
-//}
+    void* p = sbrk(0);
+    size_t head = _size_meta_data();
+    void* a = (char *) smalloc(10);
+    void* b = (char *) smalloc(10);
+    void* c = (char *) smalloc(10);
+
+    std::cout << "p: " << (size_t )p << std::endl;
+    std::cout << "a-p: " << (size_t )a-(size_t)p << std::endl;
+    std::cout << "b-a: " << (size_t )b-(size_t)a << std::endl;
+    std::cout << "c-b: " << (size_t )c-(size_t )b << std::endl;
+
+    sfree(a);
+    sfree(b);
+    sfree(c);
+
+    void* a_new = (char *) smalloc(10);
+    void* b_new = (char *) smalloc(10);
+    void* c_new = (char *) smalloc(10);
+
+    std::cout << "p: " << (size_t )p << std::endl;
+    std::cout << "a-a_new: " << (size_t )a-(size_t)a_new << std::endl;
+    std::cout << "b: " << (size_t )b-(size_t )b_new << std::endl;
+
+
+}*/
