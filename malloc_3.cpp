@@ -185,7 +185,19 @@ void splitBlock(MallocMetadata* ptr, size_t size)
         MallocMetadata* new_meta_ptr = (MallocMetadata*)enter_new_meta;
         *new_meta_ptr = new_meta;
     }
+}
 
+/*
+ * This function returns the topmost Meta struct in the heap
+ */
+MallocMetadata* getWilderness()
+{
+    MallocMetadata* it = meta_data_list;
+    if (it == nullptr)
+        return nullptr;
+    while(it->getNext() != nullptr)
+        it = it->getNext();
+    return it;
 }
 // /*
 // This function finds size of freed bytes in a row and return a pointer to the metadata of the first block
@@ -239,7 +251,19 @@ void * smalloc (size_t size){
             splitBlock((MallocMetadata*)p, size);
             return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
         }
-    } // could not find free block in the proper size, therfore us sbrk
+    } // could not find free block in the proper size, therfore use sbrk
+
+    // Wilderness check
+    MallocMetadata* wilderness = getWilderness();
+    if (wilderness->getIsFree())
+    {
+        size_t increase_brk = size - wilderness->getSize();
+        void* p = sbrk(increase_brk);
+        if ((intptr_t)p == -1)
+            return nullptr;
+        wilderness->setSize(increase_brk + wilderness->getSize());
+        return ((void*)(((char*)wilderness) + _size_meta_data())); // need to return the address excluding the meta struct
+    }
 
     size_t size_with_meta = size + _size_meta_data();
     MallocMetadata new_meta = MallocMetadata(size, false);
@@ -252,6 +276,8 @@ void * smalloc (size_t size){
     return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
 }
 
+
+//todo: the changes in s_malloc should effect scalloc?
 void * scalloc (size_t num, size_t size)
 {
     void* p = smalloc(num*size);
@@ -311,6 +337,7 @@ void sfree (void * p)
     }
 }
 
+//todo: what do we need to change in realloc>?
 void * srealloc(void * oldp, size_t size)
 {
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
