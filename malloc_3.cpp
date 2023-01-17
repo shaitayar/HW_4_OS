@@ -121,7 +121,8 @@ void deleteFromMeta(MallocMetadata* old_meta)
             if (it == old_meta)
             {
                 pre->setNext(it->getNext());
-                (it->getNext())->setPrev(pre);
+                if (it->getNext() != nullptr)
+                    (it->getNext())->setPrev(pre);
                 return;
             }
             pre = it;
@@ -365,6 +366,14 @@ void * srealloc(void * oldp, size_t size)
 //int main() {
 //
 //    void* p = sbrk(0);
-//    void* a = smalloc(10);
+//    void* a = smalloc(1);
+//    void* b = smalloc(10);
+//
+//    std::cout << "p: " << (int*)p << std::endl;
 //    std::cout << "a: " << (int*)a << std::endl;
+//    std::cout << "b: " << (int*)b << std::endl;
+//
+//    sfree(a);
+//    sfree(b);
+//
 //}
