@@ -1,0 +1,82 @@
+Start testing: Jan 17 08:10 UTC
+----------------------------------------------------------
+1/26 Testing: malloc_1.Sanity
+1/26 Test: malloc_1.Sanity
+Command: "/home/student/Desktop/HW_4_OS/build/tests/malloc_1_test" "Sanity"
+Directory: /home/student/Desktop/HW_4_OS/build/tests
+"malloc_1.Sanity" start time: Jan 17 08:10 UTC
+Output:
+----------------------------------------------------------
+Filters: Sanity
+Randomness seeded to: 3940807579
+===============================================================================
+All tests passed (2 assertions in 1 test case)
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"malloc_1.Sanity" end time: Jan 17 08:10 UTC
+"malloc_1.Sanity" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/26 Testing: malloc_1.Check size
+2/26 Test: malloc_1.Check size
+Command: "/home/student/Desktop/HW_4_OS/build/tests/malloc_1_test" "Check size"
+Directory: /home/student/Desktop/HW_4_OS/build/tests
+"malloc_1.Check size" start time: Jan 17 08:10 UTC
+Output:
+----------------------------------------------------------
+Filters: Check size
+Randomness seeded to: 1238788514
+===============================================================================
+All tests passed (6 assertions in 1 test case)
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"malloc_1.Check size" end time: Jan 17 08:10 UTC
+"malloc_1.Check size" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/26 Testing: malloc_1.0 size
+3/26 Test: malloc_1.0 size
+Command: "/home/student/Desktop/HW_4_OS/build/tests/malloc_1_test" "0 size"
+Directory: /home/student/Desktop/HW_4_OS/build/tests
+"malloc_1.0 size" start time: Jan 17 08:10 UTC
+Output:
+----------------------------------------------------------
+Filters: 0 size
+Randomness seeded to: 3730226355
+===============================================================================
+All tests passed (2 assertions in 1 test case)
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"malloc_1.0 size" end time: Jan 17 08:10 UTC
+"malloc_1.0 size" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/26 Testing: malloc_1.Max size
+4/26 Test: malloc_1.Max size
+Command: "/home/student/Desktop/HW_4_OS/build/tests/malloc_1_test" "Max size"
+Directory: /home/student/Desktop/HW_4_OS/build/tests
+"malloc_1.Max size" start time: Jan 17 08:10 UTC
+Output:
+----------------------------------------------------------
+Filters: Max size
+Randomness seeded to: 870978492
+===============================================================================
+All tests passed (4 assertions in 1 test case)
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"malloc_1.Max size" end time: Jan 17 08:10 UTC
+"malloc_1.Max size" time elapsed: 00:00:00
+----------------------------------------------------------
+

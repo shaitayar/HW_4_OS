@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #define MAX_SIZE (1e8)
+
 
 
 class MallocMetadata{
@@ -14,7 +16,7 @@ class MallocMetadata{
     MallocMetadata(size_t size, bool is_free):size(size), is_free(is_free), next(nullptr), prev(nullptr){}
 
     size_t getSize(){return this->size;}
-    bool isFree(){return is_free;}
+    bool getIsFree(){return is_free;}
     MallocMetadata* getNext(){return next;}
     MallocMetadata* getPrev(){return prev;}
 
@@ -23,9 +25,62 @@ class MallocMetadata{
     void setNext(MallocMetadata* new_next){this->next = new_next;}
     void setPrev(MallocMetadata* new_prev){this->prev = new_prev;}
 
-}
+};
 
 MallocMetadata* meta_data_list = nullptr;
+
+size_t _num_free_blocks(){
+    size_t num_free = 0;
+    MallocMetadata* it = meta_data_list;
+    while(it != nullptr){
+        if (it->getIsFree())
+            num_free++;
+        it = it->getNext();
+    }
+    return num_free;
+}
+
+size_t _num_free_bytes(){
+    size_t sum_free = 0;
+    MallocMetadata* it = meta_data_list;
+    while(it != nullptr){
+        if (it->getIsFree())
+            sum_free += it->getSize();
+        it = it->getNext();
+    }
+    return sum_free;
+}
+
+size_t _num_allocated_blocks(){
+    size_t num = 0;
+    MallocMetadata* it = meta_data_list;
+    while(it != nullptr){
+        num++;
+        it = it->getNext();
+    }
+    return num; 
+}
+
+size_t _num_allocated_bytes(){
+    size_t sum = 0;
+    MallocMetadata* it = meta_data_list;
+    while(it != nullptr){
+        sum += it->getSize();
+        it = it->getNext();
+    }
+    return sum;
+}
+
+size_t _num_meta_data_bytes(){
+    size_t num_allocated = _num_allocated_blocks();
+    return num_allocated*sizeof(*meta_data_list); //todo: if meta == null, does it return the size?
+}
+
+size_t _size_meta_data(){
+    return sizeof(*meta_data_list);
+}
+
+
 
 /*
 This function add a metadata struct to the end of the metadatalist
@@ -33,11 +88,11 @@ This function add a metadata struct to the end of the metadatalist
 void pushBackToMeta(MallocMetadata* new_meta)
 {
     if (meta_data_list == nullptr)
-        *meta_data_list = new_meta;
+        meta_data_list = new_meta;
     else{
         MallocMetadata* it = meta_data_list;
         while(it->getNext() != nullptr)
-            it = it->getNext()
+            it = it->getNext();
         it->setNext(new_meta);
     }
 }
@@ -48,7 +103,7 @@ that is free and also big enough to contain size in it.
 In case of success it returns the adress of the block found,
 In casse of failure it returns a nullptr
 */
-void* findFreeBlock(site_t size)
+void* findFreeBlock(size_t size)
 
 {
     MallocMetadata* it = meta_data_list;
@@ -107,7 +162,7 @@ void insertZeroes(void* p, size_t size)
     {
         size_t current_size = it->getSize();
         block_sum += current_size;
-        void* real_data = p + _size_meta_data();
+        void* real_data = ((char*)p) + _size_meta_data();
         memset(real_data, 0, current_size);
     }
 }
@@ -120,39 +175,38 @@ void * smalloc (size_t size){
         void* p = findFreeBlock(size);
         if (p != nullptr)
         {
-            (MallocMetadata*)p->setIsFree(false);
-            return p + _size_meta_data(); // need to return the address excluding the meta struct
+            ((MallocMetadata*)p)->setIsFree(false);
+            return ((char*)p) + _size_meta_data(); // need to return the address excluding the meta struct
         }
     } // could not find free block in the proper size, therfore us sbrk
 
-    size_t size_with_meta = size + sizeof(*meta_data_list);
+    size_t size_with_meta = size + _size_meta_data();
     MallocMetadata new_meta = MallocMetadata(size, false);
     void* p = sbrk(size_with_meta);
     if((intptr_t)p == -1)
         return nullptr;
-    MallocMetadata* meta_ptr = (MallocMetadata*)p;
+    MallocMetadata* meta_ptr = ((MallocMetadata*)p);
     *meta_ptr = new_meta;
     pushBackToMeta(meta_ptr);
-    return p + _size_meta_data(); // need to return the address excluding the meta struct
+    return ((char*)p) + _size_meta_data(); // need to return the address excluding the meta struct
 }
 
 void * scalloc (size_t num, size_t size) 
 {
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
-    size_t size_with_meta = size + sizeof(*meta_data_list);
     if (_num_free_blocks() > size)
     {
         void* p = findFreeBlock(num*size);
         if (p != nullptr)
         {
             insertZeroes(p, num*size);
-            (MallocMetadata*)p->setIsFree(false);
-            return p + _size_meta_data();
+            ((MallocMetadata*)p)->setIsFree(false);
+            return ((char*)p) + _size_meta_data();
         }
     }
 
-    size_t = size_with_meta = size*num + _size_meta_data();
+    size_t size_with_meta = size*num + _size_meta_data();
     MallocMetadata new_meta = MallocMetadata(size, false);
     void* p = sbrk(size_with_meta);
     if((intptr_t)p == -1)
@@ -160,7 +214,7 @@ void * scalloc (size_t num, size_t size)
     MallocMetadata* meta_ptr = (MallocMetadata*)p;
     *meta_ptr = new_meta;
     pushBackToMeta(meta_ptr);
-    return p + _size_meta_data();
+    return ((char*)p) + _size_meta_data();
 
 }
 
@@ -168,7 +222,7 @@ void sfree (void * p) // todo: does p points to the block with or without metada
 {
     if (p == nullptr)
         return;
-    MallocMetadata* meta_ptr = (MallocMetadata*)p - _size_meta_data(); // if p doesnt point to meta data then just reduct sizeof(meta)
+    MallocMetadata* meta_ptr = ((MallocMetadata*)((char*)p) - _size_meta_data()); // if p doesnt point to meta data then just reduct sizeof(meta)
     meta_ptr->setIsFree(true);
 }
 
@@ -176,66 +230,16 @@ void * srealloc(void * oldp, size_t size)
 {
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
-    MallocMetadata* old_meta = (MallocMetadata*) (oldp - _size_meta_data());
+    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
     if(old_meta->getSize() >= size)
         return oldp;
     void* new_p = smalloc(size);
     if (new_p == nullptr)
         return nullptr;
     old_meta->setIsFree(true);
-    memove(new_p, oldp, size);
-    return new_p +_size_meta_data();
+    memmove(new_p, oldp, size);
+    return ((char*)new_p) +_size_meta_data();
 }
 
 
-size_t _num_free_blocks(){
-    size_t num_free = 0;
-    MallocMetadata* it = meta_data_list;
-    while(it != nullptr){
-        if (it->getIsFree())
-            num_free++;
-        it->getNext();
-    }
-    return num_free;
-}
-
-size_t _num_free_bytes(){
-    size_t sum_free = 0;
-    MallocMetadata* it = meta_data_list;
-    while(it != nullptr){
-        if (it->getIsFree())
-            sum += it->getSize();
-        it->getNext();
-    }
-    return sum;
-}
-
-size_t _num_allocated_blocks(){
-    size_t num = 0;
-    MallocMetadata* it = meta_data_list;
-    while(it != nullptr){
-        num++;
-        it->getNext();
-    }
-    return num; 
-}
-
-size_t _num_allocated_bytes(){
-    size_t sum = 0;
-    MallocMetadata* it = meta_data_list;
-    while(it != nullptr){
-        sum += it->getSize();
-        it->getNext();
-    }
-    return sum;
-}
-
-size_t _num_meta_data_bytes(){
-    size_t num_allocated = _num_allocated_blocks();
-    return num_allocated*sizeof(*meta_data_list); //todo: if meta == null, does it return the size?
-}
-
-size_t _size_meta_data(){
-    return sizeof(*meta_data_list);
-}
 

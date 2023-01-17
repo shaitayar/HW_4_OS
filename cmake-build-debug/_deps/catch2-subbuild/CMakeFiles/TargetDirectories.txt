@@ -1,0 +1,3 @@
+C:/Users/yoavg/Desktop/HW_4_OS/cmake-build-debug/_deps/catch2-subbuild/CMakeFiles/catch2-populate.dir
+C:/Users/yoavg/Desktop/HW_4_OS/cmake-build-debug/_deps/catch2-subbuild/CMakeFiles/edit_cache.dir
+C:/Users/yoavg/Desktop/HW_4_OS/cmake-build-debug/_deps/catch2-subbuild/CMakeFiles/rebuild_cache.dir
