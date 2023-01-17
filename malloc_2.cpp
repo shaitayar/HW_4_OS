@@ -58,7 +58,7 @@ size_t _num_allocated_blocks(){
         num++;
         it = it->getNext();
     }
-    return num; 
+    return num;
 }
 
 size_t _num_allocated_bytes(){
@@ -182,7 +182,7 @@ void * smalloc (size_t size){
     return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
 }
 
-void * scalloc (size_t num, size_t size) 
+void * scalloc (size_t num, size_t size)
 {
     void* p = smalloc(num*size);
     if(p == nullptr)

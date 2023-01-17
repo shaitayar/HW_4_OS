@@ -257,7 +257,7 @@ void * smalloc (size_t size){
 
     // Wilderness check
     MallocMetadata* wilderness = getWilderness();
-    if (wilderness->getIsFree())
+    if (wilderness != nullptr && wilderness->getIsFree())
     {
         size_t increase_brk = size - wilderness->getSize();
         void* p = sbrk(increase_brk);
@@ -360,3 +360,11 @@ void * srealloc(void * oldp, size_t size)
     memmove(new_p, oldp, old_meta->getSize());
     return new_p;
 }
+
+
+//int main() {
+//
+//    void* p = sbrk(0);
+//    void* a = smalloc(10);
+//    std::cout << "a: " << (int*)a << std::endl;
+//}
