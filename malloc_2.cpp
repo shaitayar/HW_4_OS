@@ -227,13 +227,13 @@ void * srealloc(void * oldp, size_t size)
 {
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
-    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
-    if(old_meta->getSize() >= size)
-        return oldp;
+//    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
+//    if(old_meta->getSize() >= size)
+//        return oldp;
     void* new_p = smalloc(size);
     if (new_p == nullptr)
         return nullptr;
-    old_meta->setIsFree(true);
+//    old_meta->setIsFree(true);
     memmove(new_p, oldp, size);
     return new_p;
 }
