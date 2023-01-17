@@ -184,8 +184,6 @@ void * smalloc (size_t size){
 
 void * scalloc (size_t num, size_t size) 
 {
-    if (size == 0 || size > MAX_SIZE) {return nullptr;}
-
     void* p = smalloc(num*size);
     if(p == nullptr)
         return nullptr;
@@ -225,17 +223,19 @@ void sfree (void * p) // todo: does p points to the block with or without metada
 
 void * srealloc(void * oldp, size_t size)
 {
-    if (size == 0 || size > MAX_SIZE) {return nullptr;}
-
-//    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
-//    if(old_meta->getSize() >= size)
-//        return oldp;
+    if(oldp == nullptr)
+    {
+        void* new_p = smalloc(size);
+        return new_p;
+    }
+    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
+    if(old_meta->getSize() >= size) {
+        return oldp;
+    }
     void* new_p = smalloc(size);
     if (new_p == nullptr)
         return nullptr;
-//    old_meta->setIsFree(true);
+    old_meta->setIsFree(true);
     memmove(new_p, oldp, size);
     return new_p;
 }
-
-
