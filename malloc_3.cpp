@@ -176,14 +176,16 @@ void splitBlock(MallocMetadata* ptr, size_t size)
     {
         size_t next_block_size = ptr->getSize() - (_size_meta_data() + size);
         MallocMetadata new_meta = MallocMetadata(next_block_size, true, ptr->getNext(), ptr);
-        ptr->setSize(size);
-        if (ptr->getNext() != nullptr)
-            (ptr->getNext())->setPrev(new_meta);
-        ptr->setNext(new_meta);
 
         void* enter_new_meta = ((char*)ptr) + size + _size_meta_data();
         MallocMetadata* new_meta_ptr = (MallocMetadata*)enter_new_meta;
         *new_meta_ptr = new_meta;
+
+        ptr->setSize(size);
+        if (ptr->getNext() != nullptr)
+            (ptr->getNext())->setPrev(new_meta_ptr);
+        ptr->setNext(new_meta_ptr);
+
     }
 }
 
