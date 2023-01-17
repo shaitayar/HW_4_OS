@@ -111,7 +111,6 @@ void* findFreeBlock(size_t size)
     {
         if (it->getIsFree() && it->getSize()>=size)
         {
-            it->setIsFree(false);
             return it;
         }
         it = it->getNext();
@@ -176,7 +175,7 @@ void * smalloc (size_t size){
         if (p != nullptr)
         {
             ((MallocMetadata*)p)->setIsFree(false);
-            return ((char*)p) + _size_meta_data(); // need to return the address excluding the meta struct
+            return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
         }
     } // could not find free block in the proper size, therfore us sbrk
 
