@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-
+#include <iostream>
 #define MAX_SIZE (1e8)
 
 
@@ -169,7 +169,7 @@ void insertZeroes(void* p, size_t size)
 void * smalloc (size_t size){
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
-    if (_num_free_blocks() > size)
+    if (_num_free_bytes() >= size)
     {
         void* p = findFreeBlock(size);
         if (p != nullptr)
@@ -194,7 +194,7 @@ void * scalloc (size_t num, size_t size)
 {
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
-    if (_num_free_blocks() > size)
+    if (_num_free_bytes() >= size)
     {
         void* p = findFreeBlock(num*size);
         if (p != nullptr)
@@ -241,4 +241,50 @@ void * srealloc(void * oldp, size_t size)
 }
 
 
+//
+//#define MAX_ALLOCATION_SIZE (1e8)
+//
+//#define verify_blocks(allocated_blocks, allocated_bytes, free_blocks, free_bytes)                                      \
+//    do                                                                                                                 \
+//    {                                                                                                                  \
+//        REQUIRE(_num_allocated_blocks() == allocated_blocks);                                                          \
+//        REQUIRE(_num_allocated_bytes() == allocated_bytes);                                                            \
+//        REQUIRE(_num_free_blocks() == free_blocks);                                                                    \
+//        REQUIRE(_num_free_bytes() == free_bytes);                                                                      \
+//        REQUIRE(_num_meta_data_bytes() == _size_meta_data() * allocated_blocks);                                       \
+//    } while (0)
+//
+//#define verify_size(base)                                                                                              \
+//    do                                                                                                                 \
+//    {                                                                                                                  \
+//        void *after = sbrk(0);                                                                                         \
+//        REQUIRE(_num_allocated_bytes() + _size_meta_data() * _num_allocated_blocks() == (size_t)after - (size_t)base); \
+//    } while (0)
 
+
+
+//
+//int main()
+//{
+//    MallocMetadata* m = nullptr;
+//    std::cout <<"meta_data_size: "<< sizeof(*m) << std::endl;
+//    void *base = sbrk(0);
+//    char *a = (char *)smalloc(10);
+//    m = (MallocMetadata*)((a + sizeof(*m)));
+//    std::cout <<"num allocates: "<< _num_allocated_bytes() << std::endl;
+//    std::cout <<"num allocates: "<< _num_free_blocks() << std::endl;
+//
+//    std::cout <<"meta_data_size: "<< sizeof(*m) << std::endl;
+//
+//    sfree(a);
+//    std::cout <<"num allocates: "<< _num_allocated_bytes() << std::endl;
+//    std::cout <<"num free bytes: "<< _num_free_bytes() << std::endl;
+//
+//    char *new_a = (char *)smalloc(10);
+//
+//    std::cout <<"num allocates: "<< _num_allocated_bytes() << std::endl;
+//    std::cout <<"num free bytes: "<< _num_free_bytes() << std::endl;
+//
+//
+//    sfree(new_a);
+//}
