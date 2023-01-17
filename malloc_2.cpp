@@ -155,15 +155,7 @@ it will fill with 0 all the data without the meta struct
 */
 void insertZeroes(void* p, size_t size)
 {
-    MallocMetadata* it =(MallocMetadata*)p;
-    size_t block_sum = 0;
-    while(block_sum < size)
-    {
-        size_t current_size = it->getSize();
-        block_sum += current_size;
-        void* real_data = ((char*)p) + _size_meta_data();
-        memset(real_data, 0, current_size);
-    }
+    memset(p, 0, size);
 }
 
 void * smalloc (size_t size){
@@ -199,6 +191,7 @@ void * scalloc (size_t num, size_t size)
         void* p = findFreeBlock(num*size);
         if (p != nullptr)
         {
+            void* inside_data = (void*)(((char*)p) + _size_meta_data());
             insertZeroes(p, num*size);
             ((MallocMetadata*)p)->setIsFree(false);
             return ((char*)p) + _size_meta_data();
