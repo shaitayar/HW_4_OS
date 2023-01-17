@@ -73,7 +73,7 @@ size_t _num_allocated_bytes(){
 
 size_t _num_meta_data_bytes(){
     size_t num_allocated = _num_allocated_blocks();
-    return num_allocated*sizeof(*meta_data_list); //todo: if meta == null, does it return the size?
+    return num_allocated*sizeof(*meta_data_list);
 }
 
 size_t _size_meta_data(){
@@ -213,16 +213,19 @@ void * scalloc (size_t num, size_t size)
 
 }
 
-void sfree (void * p) // todo: does p points to the block with or without metadata?
+void sfree (void * p)
 {
     if (p == nullptr)
         return;
-    MallocMetadata* meta_ptr = ((MallocMetadata*)(((char*)p) - _size_meta_data())); // if p doesnt point to meta data then just reduct sizeof(meta)
+    MallocMetadata* meta_ptr = ((MallocMetadata*)(((char*)p) - _size_meta_data()));
     meta_ptr->setIsFree(true);
+    //todo: what does it mean realese usage of a block?
 }
 
 void * srealloc(void * oldp, size_t size)
 {
+    if (size == 0 || size > MAX_SIZE) {return nullptr;}
+
     if(oldp == nullptr)
     {
         void* new_p = smalloc(size);
@@ -236,6 +239,6 @@ void * srealloc(void * oldp, size_t size)
     if (new_p == nullptr)
         return nullptr;
     old_meta->setIsFree(true);
-    memmove(new_p, oldp, size);
+    memmove(new_p, oldp, old_meta->getSize());
     return new_p;
 }
