@@ -159,7 +159,7 @@ void insertZeroes(void* p, size_t size)
 }
 
 void * smalloc (size_t size){
-    if (size == 0 || size >= MAX_SIZE) {return nullptr;}
+    if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
     if (_num_free_bytes() >= size)
     {
@@ -187,6 +187,8 @@ void * scalloc (size_t num, size_t size)
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
 
     void* p = smalloc(num*size);
+    if(p == nullptr)
+        return nullptr;
     memset(p, 0, num*size);
     return p;
 //    if (_num_free_bytes() >= num*size)
