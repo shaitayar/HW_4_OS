@@ -2,9 +2,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+
 #define MAX_SIZE (1e8)
-
-
+#define MMAP_TREASH (128*1024)
 
 class MallocMetadata{
     size_t size;
@@ -25,10 +25,11 @@ public:
     void setIsFree(bool new_is_free){this->is_free = new_is_free;}
     void setNext(MallocMetadata* new_next){this->next = new_next;}
     void setPrev(MallocMetadata* new_prev){this->prev = new_prev;}
-
 };
 
 MallocMetadata* meta_data_list = nullptr;
+MallocMetadata* meta_data_map_list = nullptr;
+
 
 size_t _num_free_blocks(){
     size_t num_free = 0;
@@ -41,6 +42,7 @@ size_t _num_free_blocks(){
     return num_free;
 }
 
+
 size_t _num_free_bytes(){
     size_t sum_free = 0;
     MallocMetadata* it = meta_data_list;
@@ -52,6 +54,7 @@ size_t _num_free_bytes(){
     return sum_free;
 }
 
+
 size_t _num_allocated_blocks(){
     size_t num = 0;
     MallocMetadata* it = meta_data_list;
@@ -61,6 +64,7 @@ size_t _num_allocated_blocks(){
     }
     return num;
 }
+
 
 size_t _num_allocated_bytes(){
     size_t sum = 0;
@@ -72,26 +76,27 @@ size_t _num_allocated_bytes(){
     return sum;
 }
 
+
 size_t _num_meta_data_bytes(){
     size_t num_allocated = _num_allocated_blocks();
     return num_allocated*sizeof(*meta_data_list);
 }
+
 
 size_t _size_meta_data(){
     return sizeof(*meta_data_list);
 }
 
 
-
 /*
 This function add a metadata struct to the end of the metadatalist
 */
-void pushBackToMeta(MallocMetadata* new_meta)
+void pushBackToMeta(MallocMetadata* list, MallocMetadata* new_meta)
 {
     if (meta_data_list == nullptr)
-        meta_data_list = new_meta;
+        list = new_meta;
     else{
-        MallocMetadata* it = meta_data_list;
+        MallocMetadata* it = list;
         while(it->getNext() != nullptr)
         {
             it = it->getNext();
@@ -101,21 +106,22 @@ void pushBackToMeta(MallocMetadata* new_meta)
     }
 }
 
-void deleteFromMeta(MallocMetadata* old_meta)
+
+void deleteFromMeta(MallocMetadata* list ,MallocMetadata* old_meta)
 {
     if (old_meta == nullptr)
         return;
 
-    if (meta_data_list == old_meta)
+    if (list == old_meta)
     {
-        meta_data_list = meta_data_list->getNext();
-        if(meta_data_list != nullptr)
-            meta_data_list->setPrev(nullptr);
+        list = list->getNext();
+        if(list != nullptr)
+            list->setPrev(nullptr);
     }
     else
     {
-        MallocMetadata* it = meta_data_list->getNext();
-        MallocMetadata* pre = meta_data_list;
+        MallocMetadata* it = list->getNext();
+        MallocMetadata* pre = list;
         while(it != nullptr)
         {
             if (it == old_meta)
@@ -131,17 +137,18 @@ void deleteFromMeta(MallocMetadata* old_meta)
     }
 }
 
+
 /*
 This function iterate over the meta data list and search for a block
 that is free and also big enough to contain size in it.
 In case of success it returns the adress of the block found,
 In casse of failure it returns a nullptr
 */
-
 size_t min(size_t x, size_t y)
 {
     return x<=y ? x : y;
 }
+
 
 /*
  * This function find the fittest block to size of bytes
@@ -186,7 +193,6 @@ void splitBlock(MallocMetadata* ptr, size_t size)
         if (ptr->getNext() != nullptr)
             (ptr->getNext())->setPrev(new_meta_ptr);
         ptr->setNext(new_meta_ptr);
-
     }
 }
 
@@ -202,35 +208,6 @@ MallocMetadata* getWilderness()
         it = it->getNext();
     return it;
 }
-// /*
-// This function finds size of freed bytes in a row and return a pointer to the metadata of the first block
-// out of the sequence of blocks it found
-// */
-// void* findFreeBlocks(size_t num, size_t size)
-// {
-//     MallocMetadata* it = meta_data_list;
-//     MallocMetadata* begin = meta_data_list;
-//     size_t block_sum = 0;
-//     while(it != nullptr)
-//     {
-//         if(it->getIsFree())
-//         {
-//             if(block_sum == 0)
-//             {
-//                 block_sum += it->getSize();
-//                 begin = it;
-//             }
-//             else
-//                 block_sum += it->getSize();
-//             if(block_sum >= num)
-//                 return begin;
-//         }
-//         else
-//             block_sum = 0;
-//         it = it->getNext();
-//     }
-//     return nullptr;
-// }
 
 /*
 This function insert 0 to the next size bytes.
@@ -242,8 +219,33 @@ void insertZeroes(void* p, size_t size)
     memset(p, 0, size);
 }
 
+void deallocateMap(MallocMetadata* meta_ptr)
+{
+    deleteFromMeta(meta_data_map_list, meta_ptr);
+    munmap((void*)meta_ptr, meta_ptr->getSize());
+}
+
+void* allocateMap(size_t size)
+{
+    MallocMetadata new_meta = MallocMetadata(size, false);
+    void* p = mmap(NULL, size + _size_meta_data(), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (p == nullptr)
+        return nullptr;
+    MallocMetadata* meta_ptr = ((MallocMetadata*)p);
+    *meta_ptr = new_meta;
+    pushBackToMeta(meta_data_map_list, meta_ptr);
+    return p;
+}
+
 void * smalloc (size_t size){
     if (size == 0 || size > MAX_SIZE) {return nullptr;}
+    if (size >= MMAP_TREASH)
+    {
+        void* p = allocateMap(size);
+        if (p == nullptr)
+            return nullptr;
+        return ((void*)(((char*)p) + _size_meta_data()));
+    }
 
     if (_num_free_bytes() >= size)
     {
@@ -275,7 +277,7 @@ void * smalloc (size_t size){
         return nullptr;
     MallocMetadata* meta_ptr = ((MallocMetadata*)p);
     *meta_ptr = new_meta;
-    pushBackToMeta(meta_ptr);
+    pushBackToMeta(meta_data_list, meta_ptr);
     return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
 }
 
@@ -288,28 +290,6 @@ void * scalloc (size_t num, size_t size)
         return nullptr;
     memset(p, 0, num*size);
     return p;
-//    if (_num_free_bytes() >= num*size)
-//    {
-//        void* p = findFreeBlock(num*size);
-//        if (p != nullptr)
-//        {
-//            void* inside_data = (void*)(((char*)p) + _size_meta_data());
-//            insertZeroes(inside_data, num*size);
-//            ((MallocMetadata*)p)->setIsFree(false);
-//            return ((char*)p) + _size_meta_data();
-//        }
-//    }
-//
-//    size_t size_with_meta = size*num + _size_meta_data();
-//    MallocMetadata new_meta = MallocMetadata(size, false);
-//    void* p = sbrk(size_with_meta);
-//    if((intptr_t)p == -1)
-//        return nullptr;
-//    MallocMetadata* meta_ptr = (MallocMetadata*)p;
-//    *meta_ptr = new_meta;
-//    pushBackToMeta(meta_ptr);
-//    return ((char*)p) + _size_meta_data();
-
 }
 
 void sfree (void * p)
@@ -317,15 +297,24 @@ void sfree (void * p)
     if (p == nullptr)
         return;
     MallocMetadata* meta_ptr = ((MallocMetadata*)(((char*)p) - _size_meta_data()));
+
+    // If the block allocated by mmap
+    if (meta_ptr->getSize() > MMAP_TREASH)
+    {
+        deallocateMap(meta_ptr);
+        return;
+    }
+
     meta_ptr->setIsFree(true);
     MallocMetadata* meta_pre = meta_ptr->getPrev();
     MallocMetadata* meta_next = meta_ptr->getNext();
     size_t curr_size = meta_ptr->getSize() + _size_meta_data();
+
     if (meta_pre != nullptr)
     {
         if(meta_pre->getIsFree())
         {
-            deleteFromMeta(meta_ptr);
+            deleteFromMeta(meta_data_list, meta_ptr);
             meta_pre->setSize(meta_pre->getSize() + curr_size);
             meta_ptr = meta_pre;
         }
@@ -334,7 +323,7 @@ void sfree (void * p)
     {
         if(meta_next->getIsFree())
         {
-            deleteFromMeta(meta_next);
+            deleteFromMeta(meta_data_list, meta_next);
             meta_ptr->setSize(meta_ptr->getSize() + meta_next->getSize() + _size_meta_data());
         }
     }
