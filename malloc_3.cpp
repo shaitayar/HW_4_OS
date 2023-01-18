@@ -94,7 +94,7 @@ This function add a metadata struct to the end of the metadatalist
 */
 void pushBackToMeta(MallocMetadata* list, MallocMetadata* new_meta)
 {
-    if (meta_data_list == nullptr)
+    if (list == nullptr)
         list = new_meta;
     else{
         MallocMetadata* it = list;
@@ -158,7 +158,7 @@ size_t min(size_t x, size_t y)
 void* findFreeBlock(size_t size)
 {
     MallocMetadata* it = meta_data_list;
-    size_t min_size = _num_free_bytes()+1;
+    size_t min_size = _num_free_bytes() + 1;
     MallocMetadata* it_min = nullptr;
     while(it != nullptr)
     {
