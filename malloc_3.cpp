@@ -30,7 +30,8 @@ public:
 
 MallocMetadata* meta_data_list = nullptr;
 MallocMetadata* meta_data_map_list = nullptr;
-
+size_t map_list_length = 0;
+size_t list_length = 0;
 
 size_t _num_free_blocks(){
     size_t num_free = 0;
@@ -58,10 +59,15 @@ size_t _num_free_bytes(){
 
 size_t _num_allocated_blocks(){
     size_t num = 0;
-    MallocMetadata* it = meta_data_list;
-    while(it != nullptr){
-        num++;
-        it = it->getNext();
+    MallocMetadata* lists[] = {meta_data_list, meta_data_map_list};
+    for(int i=0; i<2; i++)
+    {
+        MallocMetadata* it = lists[i];
+        while(it != nullptr)
+        {
+            num++;
+            it = it->getNext();
+        }
     }
     return num;
 }
@@ -69,10 +75,15 @@ size_t _num_allocated_blocks(){
 
 size_t _num_allocated_bytes(){
     size_t sum = 0;
-    MallocMetadata* it = meta_data_list;
-    while(it != nullptr){
-        sum += it->getSize();
-        it = it->getNext();
+    MallocMetadata* lists[] = {meta_data_list, meta_data_map_list};
+    for(int i=0; i<2; i++)
+    {
+        MallocMetadata* it = lists[i];
+        while(it != nullptr)
+        {
+            sum += it->getSize();
+            it = it->getNext();
+        }
     }
     return sum;
 }
