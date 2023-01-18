@@ -223,7 +223,7 @@ void insertZeroes(void* p, size_t size)
 
 void deallocateMap(MallocMetadata* meta_ptr)
 {
-    deleteFromMeta(meta_data_map_list, meta_ptr);
+    deleteFromMeta(&meta_data_map_list, meta_ptr);
     munmap((void*)meta_ptr, meta_ptr->getSize());
 }
 
