@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+#include <sys/mman.h>
 
 #define MAX_SIZE (1e8)
 #define MMAP_TREASH (128*1024)
