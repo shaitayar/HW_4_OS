@@ -92,12 +92,13 @@ size_t _size_meta_data(){
 /*
 This function add a metadata struct to the end of the metadatalist
 */
-void pushBackToMeta(MallocMetadata* list, MallocMetadata* new_meta)
+void pushBackToMeta(MallocMetadata** list, MallocMetadata* new_meta)
 {
-    if (list == nullptr)
-        list = new_meta;
-    else{
-        MallocMetadata* it = list;
+    if (*list == nullptr)
+        *list = new_meta;
+    else
+    {
+        MallocMetadata* it = *list;
         while(it->getNext() != nullptr)
         {
             it = it->getNext();
@@ -108,21 +109,21 @@ void pushBackToMeta(MallocMetadata* list, MallocMetadata* new_meta)
 }
 
 
-void deleteFromMeta(MallocMetadata* list ,MallocMetadata* old_meta)
+void deleteFromMeta(MallocMetadata** list ,MallocMetadata* old_meta)
 {
     if (old_meta == nullptr)
         return;
 
-    if (list == old_meta)
+    if (*list == old_meta)
     {
-        list = list->getNext();
-        if(list != nullptr)
-            list->setPrev(nullptr);
+        *list = (*list)->getNext();
+        if(*list != nullptr)
+            (*list)->setPrev(nullptr);
     }
     else
     {
-        MallocMetadata* it = list->getNext();
-        MallocMetadata* pre = list;
+        MallocMetadata* it = (*list)->getNext();
+        MallocMetadata* pre = *list;
         while(it != nullptr)
         {
             if (it == old_meta)
@@ -234,7 +235,7 @@ void* allocateMap(size_t size)
         return nullptr;
     MallocMetadata* meta_ptr = ((MallocMetadata*)p);
     *meta_ptr = new_meta;
-    pushBackToMeta(meta_data_map_list, meta_ptr);
+    pushBackToMeta(&meta_data_map_list, meta_ptr);
     return p;
 }
 
@@ -278,7 +279,7 @@ void * smalloc (size_t size){
         return nullptr;
     MallocMetadata* meta_ptr = ((MallocMetadata*)p);
     *meta_ptr = new_meta;
-    pushBackToMeta(meta_data_list, meta_ptr);
+    pushBackToMeta(&meta_data_list, meta_ptr);
     return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
 }
 
@@ -315,7 +316,7 @@ void sfree (void * p)
     {
         if(meta_pre->getIsFree())
         {
-            deleteFromMeta(meta_data_list, meta_ptr);
+            deleteFromMeta(&meta_data_list, meta_ptr);
             meta_pre->setSize(meta_pre->getSize() + curr_size);
             meta_ptr = meta_pre;
         }
@@ -324,7 +325,7 @@ void sfree (void * p)
     {
         if(meta_next->getIsFree())
         {
-            deleteFromMeta(meta_data_list, meta_next);
+            deleteFromMeta(&meta_data_list, meta_next);
             meta_ptr->setSize(meta_ptr->getSize() + meta_next->getSize() + _size_meta_data());
         }
     }
@@ -352,30 +353,30 @@ void * srealloc(void * oldp, size_t size)
     return new_p;
 }
 
-/*int main() {
-
-    void* p = sbrk(0);
-    size_t head = _size_meta_data();
-    void* a = (char *) smalloc(10);
-    void* b = (char *) smalloc(10);
-    void* c = (char *) smalloc(10);
-
-    std::cout << "p: " << (size_t )p << std::endl;
-    std::cout << "a-p: " << (size_t )a-(size_t)p << std::endl;
-    std::cout << "b-a: " << (size_t )b-(size_t)a << std::endl;
-    std::cout << "c-b: " << (size_t )c-(size_t )b << std::endl;
-
-    sfree(a);
-    sfree(b);
-    sfree(c);
-
-    void* a_new = (char *) smalloc(10);
-    void* b_new = (char *) smalloc(10);
-    void* c_new = (char *) smalloc(10);
-
-    std::cout << "p: " << (size_t )p << std::endl;
-    std::cout << "a-a_new: " << (size_t )a-(size_t)a_new << std::endl;
-    std::cout << "b: " << (size_t )b-(size_t )b_new << std::endl;
-
-
-}*/
+//int main() {
+//
+//    void* p = sbrk(0);
+//    size_t head = _size_meta_data();
+//    void* a = (char *) smalloc(10);
+//    void* b = (char *) smalloc(10);
+//    void* c = (char *) smalloc(10);
+//
+//    std::cout << "p: " << (size_t )p << std::endl;
+//    std::cout << "a-p: " << (size_t )a-(size_t)p << std::endl;
+//    std::cout << "b-a: " << (size_t )b-(size_t)a << std::endl;
+//    std::cout << "c-b: " << (size_t )c-(size_t )b << std::endl;
+//
+//    sfree(a);
+//    sfree(b);
+//    sfree(c);
+//
+//    void* a_new = (char *) smalloc(10);
+//    void* b_new = (char *) smalloc(10);
+//    void* c_new = (char *) smalloc(10);
+//
+//    std::cout << "p: " << (size_t )p << std::endl;
+//    std::cout << "a-a_new: " << (size_t )a-(size_t)a_new << std::endl;
+//    std::cout << "b: " << (size_t )b-(size_t )b_new << std::endl;
+//
+//
+//}
