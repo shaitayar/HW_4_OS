@@ -236,7 +236,6 @@ void deallocateMap(MallocMetadata* meta_ptr)
 {
     deleteFromMeta(&meta_data_map_list, meta_ptr);
     munmap((void*)meta_ptr, meta_ptr->getSize());
-    meta_ptr->setIsFree(false);
 }
 
 void* allocateMap(size_t size)
