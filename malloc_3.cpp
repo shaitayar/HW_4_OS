@@ -343,6 +343,36 @@ void sfree (void * p)
     }
 }
 
+/*
+ * This function delete the current block and inlarge the previues blocks,
+ * In other words merge the current block with the previeus
+ */
+MallocMetadata* mergeWithLowerBlock(MallocMetadata* meta_ptr)
+{
+
+    MallocMetadata* pre = meta_ptr->getPrev();
+    if (meta_ptr == nullptr || pre == nullptr)
+        return nullptr;
+    deleteFromMeta(&meta_data_list, meta_ptr);
+    pre->setSize(pre->getSize() + meta_ptr->getSize() + _size_meta_data());
+    return pre;
+}
+
+/*
+ * This function delete the next block and inlarge the current block.
+ * Merging the current with the next block
+ */
+MallocMetadata* mergeWithHigherBlock(MallocMetadata* meta_ptr)
+{
+
+    MallocMetadata* next = meta_ptr->getNext();
+    if (meta_ptr == nullptr || next == nullptr)
+        return nullptr;
+    deleteFromMeta(&meta_data_list, next);
+    meta_ptr->setSize(next->getSize() + meta_ptr->getSize() + _size_meta_data());
+    return meta_ptr;
+}
+
 //todo: what do we need to change in realloc>?
 void * srealloc(void * oldp, size_t size)
 {
@@ -357,6 +387,77 @@ void * srealloc(void * oldp, size_t size)
     if(old_meta->getSize() >= size) {
         return oldp;
     }
+    size_t old_size = old_meta->getSize();
+    MallocMetadata* next = old_meta->getNext();
+    size_t next_size = 0;
+    MallocMetadata* pre = old_meta->getPrev();
+    size_t pre_size = 0;
+    MallocMetadata* new_meta;
+    if (pre != nullptr)
+    {
+        if (pre->getIsFree())
+        {
+            pre_size = pre->getSize();
+            ///This case represents merging with lower address
+            if(pre_size + old_size >= size)
+            {
+                new_meta = mergeWithLowerBlock(old_meta);
+                void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+                memmove(new_p, oldp, old_size);
+                return new_p;
+            }
+            ///This case represents merging with lower and wilderness
+            if(next == nullptr)
+            {
+                new_meta = mergeWithLowerBlock(old_meta);
+                size_t increase_brk = size - new_meta->getSize();
+                void* p = sbrk(increase_brk);
+                if ((intptr_t)p == -1)
+                    return nullptr;
+                new_meta->setSize(increase_brk + new_meta->getSize());
+                void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+                memmove(new_p, oldp, old_size);
+                return new_p;
+            }
+        }
+    }
+
+    ///This case is if the current block is the wilderness block
+    if (next == nullptr)
+    {
+        size_t increase_brk = size - old_size;
+        void* p = sbrk(increase_brk);
+        if ((intptr_t)p == -1)
+            return nullptr;
+        old_meta->setSize(increase_brk + old_size);
+        void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+        return new_p;
+    }
+
+    if(next != nullptr)
+    {
+        if (next->getIsFree())
+        {
+            next_size = next->getSize();
+            ///This case represents merging with higher
+            if(next_size + old_size >= size)
+            {
+                new_meta = mergeWithHigherBlock(old_meta);
+                void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+                memmove(new_p, oldp, old_meta->getSize());
+                return new_meta;
+            }
+        }
+    }
+    ///This case is merging with lower adress and higher address
+    if(old_size + pre_size + next_size >= size)
+    {
+        new_meta = mergeWithHigherBlock(old_meta);
+        new_meta = mergeWithLowerBlock(new_meta);
+        void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+        memmove(new_p, oldp, old_meta->getSize());
+        return new_meta;
+    }
     void* new_p = smalloc(size);
     if (new_p == nullptr)
         return nullptr;
@@ -364,7 +465,7 @@ void * srealloc(void * oldp, size_t size)
     memmove(new_p, oldp, old_meta->getSize());
     return new_p;
 }
-////
+
 //int main() {
 //
 //    void* p = sbrk(0);
