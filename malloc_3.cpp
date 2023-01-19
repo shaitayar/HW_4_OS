@@ -279,6 +279,7 @@ void * smalloc (size_t size){
         void* p = sbrk(increase_brk);
         if ((intptr_t)p == -1)
             return nullptr;
+        wilderness->setIsFree(false);
         wilderness->setSize(increase_brk + wilderness->getSize());
         return ((void*)(((char*)wilderness) + _size_meta_data())); // need to return the address excluding the meta struct
     }
@@ -364,30 +365,31 @@ void * srealloc(void * oldp, size_t size)
     return new_p;
 }
 
-//int main() {
-//
-//    void* p = sbrk(0);
-//    size_t head = _size_meta_data();
-//    void* a = (char *) smalloc(10);
+int main() {
+
+    void* p = sbrk(0);
+    size_t head = _size_meta_data();
+    void* a = (char *) smalloc(16);
 //    void* b = (char *) smalloc(10);
 //    void* c = (char *) smalloc(10);
-//
-//    std::cout << "p: " << (size_t )p << std::endl;
-//    std::cout << "a-p: " << (size_t )a-(size_t)p << std::endl;
-//    std::cout << "b-a: " << (size_t )b-(size_t)a << std::endl;
-//    std::cout << "c-b: " << (size_t )c-(size_t )b << std::endl;
-//
-//    sfree(a);
-//    sfree(b);
-//    sfree(c);
-//
-//    void* a_new = (char *) smalloc(10);
-//    void* b_new = (char *) smalloc(10);
-//    void* c_new = (char *) smalloc(10);
-//
-//    std::cout << "p: " << (size_t )p << std::endl;
-//    std::cout << "a-a_new: " << (size_t )a-(size_t)a_new << std::endl;
-//    std::cout << "b: " << (size_t )b-(size_t )b_new << std::endl;
-//
-//
-//}
+    sfree(a);
+
+    std::cout << "p: " << (size_t )p << std::endl;
+    std::cout << "a-p: " << (size_t )a-(size_t)p << std::endl;
+    std::cout << "b-a: " << (size_t )b-(size_t)a << std::endl;
+    std::cout << "c-b: " << (size_t )c-(size_t )b << std::endl;
+
+    sfree(a);
+    sfree(b);
+    sfree(c);
+
+    void* a_new = (char *) smalloc(10);
+    void* b_new = (char *) smalloc(10);
+    void* c_new = (char *) smalloc(10);
+
+    std::cout << "p: " << (size_t )p << std::endl;
+    std::cout << "a-a_new: " << (size_t )a-(size_t)a_new << std::endl;
+    std::cout << "b: " << (size_t )b-(size_t )b_new << std::endl;
+
+
+}
