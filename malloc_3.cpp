@@ -6,7 +6,7 @@
 
 #define MAX_SIZE (1e8)
 #define MMAP_TREASH (128*1024)
-
+#define MIN_SPLIT_SIZE (128)
 class MallocMetadata{
     size_t size;
     bool is_free;
@@ -355,6 +355,7 @@ MallocMetadata* mergeWithLowerBlock(MallocMetadata* meta_ptr)
         return nullptr;
     deleteFromMeta(&meta_data_list, meta_ptr);
     pre->setSize(pre->getSize() + meta_ptr->getSize() + _size_meta_data());
+    pre->setIsFree(false);
     return pre;
 }
 
@@ -513,15 +514,20 @@ void * srealloc(void * oldp, size_t size)
     return new_p;
 }
 
-//int main() {
-//
-//    void* p = sbrk(0);
-//    size_t head = _size_meta_data();
-//    void* a = (char *) smalloc(MMAP_TREASH);
-//    void* b = (char *) srealloc(a, MMAP_TREASH);
-//    std::cout << "a:" << (int*)a << std::endl;
-//    std::cout << "b:" << (int*)b << std::endl;
-//    void* c= (char*) srealloc(b, 32);
-//    std::cout << "c:" << (int*)c << std::endl;
-//
-//}
+int main() {
+
+    void* p = sbrk(0);
+    size_t head = _size_meta_data();
+    void* a = (char *) smalloc(MIN_SPLIT_SIZE + 32);
+    void* b = (char *) smalloc(32);
+    void* c= (char*) smalloc(32);
+    sfree(a);
+    sfree(c);
+    void* new_b= (char*) srealloc(b, 64);
+    std::cout << "a:" << (int*)a << std::endl;
+    std::cout << "b:" << (int*)b << std::endl;
+    std::cout << "c:" << (int*)c << std::endl;
+    std::cout << "new_b:" << (int*)c << std::endl;
+
+
+}
