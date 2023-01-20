@@ -461,7 +461,7 @@ void * srealloc(void * oldp, size_t size)
                 splitBlock(new_meta, size);
                 void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
                 memmove(new_p, oldp, size);
-                return new_meta;
+                return new_p;
             }
         }
     }
@@ -473,7 +473,7 @@ void * srealloc(void * oldp, size_t size)
         splitBlock(new_meta, size);
         void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
         memmove(new_p, oldp, size);
-        return new_meta;
+        return new_p;
     }
     else
     {
@@ -527,26 +527,27 @@ void pirntData()
     std::cout << "free bytes:" << _num_free_bytes() << std::endl << std::endl;
 
 }
-//int main() {
-//
-//    void* p = sbrk(0);
-//    size_t head = _size_meta_data();
-//    void* a = (char *) smalloc(32 + MIN_SPLIT_SIZE);
-//    void* b = (char *) smalloc(32);
-//    void* c= (char*) smalloc(32);
-//    pirntData();
-//    sfree(a);
-//    sfree(c);
-//    pirntData();
-//    void* new_b= (char*) srealloc(b, 64);
-//    if (a == new_b)
-//        std::cout << "a = new_b" << std::endl;
-//    pirntData();
-//    std::cout << "new_b:" << (int*)new_b << std::endl;
-//    std::cout << "a:" << (int*)a << std::endl;
-//    std::cout << "b:" << (int*)b << std::endl;
-//    std::cout << "c:" << (int*)c << std::endl;
-//    sfree(new_b);
-//    pirntData();
-//    int d = 0;
-//}
+int main() {
+
+    void* p = sbrk(0);
+    size_t head = _size_meta_data();
+    void* a = (char *) smalloc(32);
+    void* b = (char *) smalloc(32);
+    void* c= (char*) smalloc(32);
+    pirntData();
+    sfree(c);
+    pirntData();
+    void* new_b= (char*) srealloc(b, 64);
+    if (a == new_b)
+        std::cout << "a = new_b" << std::endl;
+    pirntData();
+    std::cout << "new_b:" << (int*)new_b << std::endl;
+    std::cout << "a:" << (int*)a << std::endl;
+    std::cout << "b:" << (int*)b << std::endl;
+    std::cout << "c:" << (int*)c << std::endl;
+//    void* new_2b= (char*) srealloc(new_b, 64 + _size_meta_data());
+
+    sfree(new_b);
+    pirntData();
+    int d = 0;
+}
