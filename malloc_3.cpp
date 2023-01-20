@@ -410,7 +410,7 @@ void * srealloc(void * oldp, size_t size)
     {
         if (pre->getIsFree())
         {
-            pre_size = pre->getSize();
+            pre_size = pre->getSize() + _size_meta_data();
             ///(b1)This case merging with lower address
             if(pre_size + old_size >= size)
             {
@@ -451,7 +451,7 @@ void * srealloc(void * oldp, size_t size)
     {
         if (next->getIsFree())
         {
-            next_size = next->getSize();
+            next_size = next->getSize() + _size_meta_data();
             ///(d)This case represents merging with higher
             if(next_size + old_size >= size)
             {
@@ -516,22 +516,35 @@ void * srealloc(void * oldp, size_t size)
     return new_p;
 }
 //
+
+void pirntData()
+{
+    std::cout << "aloc blocks:" << _num_allocated_blocks() << std::endl;
+    std::cout << "aloc bytes" << _num_allocated_bytes() << std::endl;
+    std::cout << "free blocks" << _num_free_blocks() << std::endl;
+    std::cout << "free bytes:" << _num_free_bytes() << std::endl;
+
+}
 //int main() {
 //
 //    void* p = sbrk(0);
 //    size_t head = _size_meta_data();
-//    void* a = (char *) smalloc(MIN_SPLIT_SIZE + 32);
+//    void* a = (char *) smalloc(32);
 //    void* b = (char *) smalloc(32);
 //    void* c= (char*) smalloc(32);
+//    pirntData();
 //    sfree(a);
 //    sfree(c);
-//    void* new_b= (char*) srealloc(b, 64);
+//    pirntData();
+//    void* new_b= (char*) srealloc(b, 64+_size_meta_data());
+//    if (a == new_b)
+//        std::cout << "a = new_b" << std::endl;
+//    pirntData();
+//    std::cout << "new_b:" << (int*)new_b << std::endl;
 //    std::cout << "a:" << (int*)a << std::endl;
 //    std::cout << "b:" << (int*)b << std::endl;
 //    std::cout << "c:" << (int*)c << std::endl;
-//    std::cout << "new_b:" << (int*)new_b << std::endl;
-//    if (a == new_b)
-//        std::cout << "a = new_b" << std::endl;
 //    sfree(new_b);
+//    pirntData();
 //    int d = 0;
 //}
