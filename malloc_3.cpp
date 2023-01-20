@@ -119,6 +119,7 @@ void pushBackToMeta(MallocMetadata** list, MallocMetadata* new_meta)
     }
 }
 
+void sfree(void* p);
 
 void deleteFromMeta(MallocMetadata** list ,MallocMetadata* old_meta)
 {
@@ -206,6 +207,7 @@ void splitBlock(MallocMetadata* ptr, size_t size)
         if (ptr->getNext() != nullptr)
             (ptr->getNext())->setPrev(new_meta_ptr);
         ptr->setNext(new_meta_ptr);
+        sfree(((void*)(((char*)new_meta_ptr) + _size_meta_data())));
     }
 }
 
@@ -520,23 +522,23 @@ void * srealloc(void * oldp, size_t size)
 void pirntData()
 {
     std::cout << "aloc blocks:" << _num_allocated_blocks() << std::endl;
-    std::cout << "aloc bytes" << _num_allocated_bytes() << std::endl;
+    std::cout << "aloc bytes:" << _num_allocated_bytes() << std::endl;
     std::cout << "free blocks" << _num_free_blocks() << std::endl;
-    std::cout << "free bytes:" << _num_free_bytes() << std::endl;
+    std::cout << "free bytes:" << _num_free_bytes() << std::endl << std::endl;
 
 }
 //int main() {
 //
 //    void* p = sbrk(0);
 //    size_t head = _size_meta_data();
-//    void* a = (char *) smalloc(32);
+//    void* a = (char *) smalloc(32 + MIN_SPLIT_SIZE);
 //    void* b = (char *) smalloc(32);
 //    void* c= (char*) smalloc(32);
 //    pirntData();
 //    sfree(a);
 //    sfree(c);
 //    pirntData();
-//    void* new_b= (char*) srealloc(b, 64+_size_meta_data());
+//    void* new_b= (char*) srealloc(b, 64);
 //    if (a == new_b)
 //        std::cout << "a = new_b" << std::endl;
 //    pirntData();
