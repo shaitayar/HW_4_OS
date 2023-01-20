@@ -384,6 +384,13 @@ void * srealloc(void * oldp, size_t size)
         return new_p;
     }
     MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
+    if (old_meta->getSize() >=MMAP_TREASH)
+    {
+        void* new_p = smalloc(size);
+        memmove(new_p, oldp, old_meta->getSize());
+        sfree((void*)old_meta);
+        return new_p;
+    }
     ///(a) This case reuse the current block without any merging
     if(old_meta->getSize() >= size) {
         splitBlock(old_meta, size);
