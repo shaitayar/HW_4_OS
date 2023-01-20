@@ -513,21 +513,21 @@ void * srealloc(void * oldp, size_t size)
     memmove(new_p, oldp, size);
     return new_p;
 }
-
-int main() {
-
-    void* p = sbrk(0);
-    size_t head = _size_meta_data();
-    void* a = (char *) smalloc(MIN_SPLIT_SIZE + 32);
-    void* b = (char *) smalloc(32);
-    void* c= (char*) smalloc(32);
-    sfree(a);
-    sfree(c);
-    void* new_b= (char*) srealloc(b, 64);
-    std::cout << "a:" << (int*)a << std::endl;
-    std::cout << "b:" << (int*)b << std::endl;
-    std::cout << "c:" << (int*)c << std::endl;
-    std::cout << "new_b:" << (int*)c << std::endl;
-
-
-}
+//
+//int main() {
+//
+//    void* p = sbrk(0);
+//    size_t head = _size_meta_data();
+//    void* a = (char *) smalloc(MIN_SPLIT_SIZE + 32);
+//    void* b = (char *) smalloc(32);
+//    void* c= (char*) smalloc(32);
+//    sfree(a);
+//    sfree(c);
+//    void* new_b= (char*) srealloc(b, 64);
+//    std::cout << "a:" << (int*)a << std::endl;
+//    std::cout << "b:" << (int*)b << std::endl;
+//    std::cout << "c:" << (int*)c << std::endl;
+//    std::cout << "new_b:" << (int*)c << std::endl;
+//
+//
+//}
