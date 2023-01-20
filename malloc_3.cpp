@@ -488,6 +488,7 @@ void * srealloc(void * oldp, size_t size)
                     if ((intptr_t)p == -1)
                         return nullptr;
                     new_meta->setSize(increase_brk + old_size);
+                    new_meta->setIsFree(false);
                     void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
                     memmove(new_p, oldp, size);
                     return new_p;
@@ -502,6 +503,7 @@ void * srealloc(void * oldp, size_t size)
             if ((intptr_t)p == -1)
                 return nullptr;
             new_meta->setSize(increase_brk + old_size);
+            new_meta->setIsFree(false);
             void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
             return new_p;
         }
@@ -528,4 +530,8 @@ void * srealloc(void * oldp, size_t size)
 //    std::cout << "b:" << (int*)b << std::endl;
 //    std::cout << "c:" << (int*)c << std::endl;
 //    std::cout << "new_b:" << (int*)new_b << std::endl;
+//    if (a == new_b)
+//        std::cout << "a = new_b" << std::endl;
+//    sfree(new_b);
+//    int d = 0;
 //}
