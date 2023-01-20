@@ -383,9 +383,12 @@ void * srealloc(void * oldp, size_t size)
         void* new_p = smalloc(size);
         return new_p;
     }
-    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
-    if (size >= MMAP_TREASH)
+    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));\
+    ///This case handle trying to realloc a map area
+    if (old_meta->getSize() >= MMAP_TREASH)
     {
+        if(old_meta->getSize() <= size)
+            return oldp;
         void* new_p = smalloc(size);
         memmove(new_p, oldp, old_meta->getSize());
         sfree(oldp);
