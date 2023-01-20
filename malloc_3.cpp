@@ -390,7 +390,7 @@ void * srealloc(void * oldp, size_t size)
         if(old_meta->getSize() <= size)
             return oldp;
         void* new_p = smalloc(size);
-        memmove(new_p, oldp, old_meta->getSize());
+        memmove(new_p, oldp, size);
         sfree(oldp);
         return new_p;
     }
@@ -416,7 +416,7 @@ void * srealloc(void * oldp, size_t size)
                 new_meta = mergeWithLowerBlock(old_meta);
                 splitBlock(new_meta, size);
                 void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
-                memmove(new_p, oldp, old_size);
+                memmove(new_p, oldp, size);
                 return new_p;
             }
             ///(b2)This case represents merging with lower and wilderness
@@ -429,7 +429,7 @@ void * srealloc(void * oldp, size_t size)
                     return nullptr;
                 new_meta->setSize(increase_brk + new_meta->getSize());
                 void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
-                memmove(new_p, oldp, old_size);
+                memmove(new_p, oldp, size);
                 return new_p;
             }
         }
@@ -457,7 +457,7 @@ void * srealloc(void * oldp, size_t size)
                 new_meta = mergeWithHigherBlock(old_meta);
                 splitBlock(new_meta, size);
                 void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
-                memmove(new_p, oldp, old_meta->getSize());
+                memmove(new_p, oldp, size);
                 return new_meta;
             }
         }
@@ -469,7 +469,7 @@ void * srealloc(void * oldp, size_t size)
         new_meta = mergeWithLowerBlock(new_meta);
         splitBlock(new_meta, size);
         void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
-        memmove(new_p, oldp, old_meta->getSize());
+        memmove(new_p, oldp, size);
         return new_meta;
     }
     else
@@ -488,7 +488,7 @@ void * srealloc(void * oldp, size_t size)
                         return nullptr;
                     new_meta->setSize(increase_brk + old_size);
                     void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
-                    memmove(new_p, oldp, old_meta->getSize());
+                    memmove(new_p, oldp, size);
                     return new_p;
                 }
         }
@@ -509,7 +509,7 @@ void * srealloc(void * oldp, size_t size)
     if (new_p == nullptr)
         return nullptr;
     old_meta->setIsFree(true);
-    memmove(new_p, oldp, old_meta->getSize());
+    memmove(new_p, oldp, size);
     return new_p;
 }
 
@@ -517,10 +517,11 @@ void * srealloc(void * oldp, size_t size)
 //
 //    void* p = sbrk(0);
 //    size_t head = _size_meta_data();
-//    void* a = (char *) smalloc(128*1024);
-//    std::cout << "num_allocation:" << _num_allocated_blocks();
-//    sfree(a);
-//    std::cout << "num_allocation:" << _num_allocated_blocks();
-//
+//    void* a = (char *) smalloc(MMAP_TREASH);
+//    void* b = (char *) srealloc(a, MMAP_TREASH);
+//    std::cout << "a:" << (int*)a << std::endl;
+//    std::cout << "b:" << (int*)b << std::endl;
+//    void* c= (char*) srealloc(b, 32);
+//    std::cout << "c:" << (int*)c << std::endl;
 //
 //}
