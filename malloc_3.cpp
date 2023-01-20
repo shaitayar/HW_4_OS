@@ -527,7 +527,5 @@ void * srealloc(void * oldp, size_t size)
 //    std::cout << "a:" << (int*)a << std::endl;
 //    std::cout << "b:" << (int*)b << std::endl;
 //    std::cout << "c:" << (int*)c << std::endl;
-//    std::cout << "new_b:" << (int*)c << std::endl;
-//
-//
+//    std::cout << "new_b:" << (int*)new_b << std::endl;
 //}
