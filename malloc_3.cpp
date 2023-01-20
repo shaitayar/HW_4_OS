@@ -384,7 +384,7 @@ void * srealloc(void * oldp, size_t size)
         return new_p;
     }
     MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
-    if (old_meta->getSize() >= MMAP_TREASH)
+    if (size >= MMAP_TREASH)
     {
         void* new_p = smalloc(size);
         memmove(new_p, oldp, old_meta->getSize());
