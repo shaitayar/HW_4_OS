@@ -384,7 +384,9 @@ void * srealloc(void * oldp, size_t size)
         return new_p;
     }
     MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
+    ///(a) This case reuse the current block without any merging
     if(old_meta->getSize() >= size) {
+        splitBlock(old_meta, size);
         return oldp;
     }
     size_t old_size = old_meta->getSize();
@@ -398,15 +400,16 @@ void * srealloc(void * oldp, size_t size)
         if (pre->getIsFree())
         {
             pre_size = pre->getSize();
-            ///This case represents merging with lower address
+            ///(b1)This case merging with lower address
             if(pre_size + old_size >= size)
             {
                 new_meta = mergeWithLowerBlock(old_meta);
+                splitBlock(new_meta, size);
                 void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
                 memmove(new_p, oldp, old_size);
                 return new_p;
             }
-            ///This case represents merging with lower and wilderness
+            ///(b2)This case represents merging with lower and wilderness
             if(next == nullptr)
             {
                 new_meta = mergeWithLowerBlock(old_meta);
@@ -422,7 +425,7 @@ void * srealloc(void * oldp, size_t size)
         }
     }
 
-    ///This case is if the current block is the wilderness block
+    ///(c)This case is if the current block is the wilderness block
     if (next == nullptr)
     {
         size_t increase_brk = size - old_size;
@@ -430,33 +433,67 @@ void * srealloc(void * oldp, size_t size)
         if ((intptr_t)p == -1)
             return nullptr;
         old_meta->setSize(increase_brk + old_size);
-        void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+        void* new_p = ((void*)(((char*)old_meta) + _size_meta_data()));
         return new_p;
     }
-
-    if(next != nullptr)
+    else
     {
         if (next->getIsFree())
         {
             next_size = next->getSize();
-            ///This case represents merging with higher
+            ///(d)This case represents merging with higher
             if(next_size + old_size >= size)
             {
                 new_meta = mergeWithHigherBlock(old_meta);
+                splitBlock(new_meta, size);
                 void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
                 memmove(new_p, oldp, old_meta->getSize());
                 return new_meta;
             }
         }
     }
-    ///This case is merging with lower adress and higher address
+    ///(e)This case is merging with lower adress and higher address
     if(old_size + pre_size + next_size >= size)
     {
         new_meta = mergeWithHigherBlock(old_meta);
         new_meta = mergeWithLowerBlock(new_meta);
+        splitBlock(new_meta, size);
         void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
         memmove(new_p, oldp, old_meta->getSize());
         return new_meta;
+    }
+    else
+    {
+        if (pre != nullptr && next != nullptr)
+        {
+            if(pre->getIsFree() && next->getIsFree())
+                ///(f1)This case is merging lower and upper and the upper is wilderness
+                if (next->getNext() == nullptr)
+                {
+                    new_meta = mergeWithHigherBlock(old_meta);
+                    new_meta = mergeWithLowerBlock(new_meta);
+                    size_t increase_brk = size - new_meta->getSize();
+                    void* p = sbrk(increase_brk);
+                    if ((intptr_t)p == -1)
+                        return nullptr;
+                    new_meta->setSize(increase_brk + old_size);
+                    void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+                    memmove(new_p, oldp, old_meta->getSize());
+                    return new_p;
+                }
+        }
+        ///(f2)This case handle merging with higher and wilderness
+        if (next->getNext() == nullptr)
+        {
+            new_meta = mergeWithHigherBlock(old_meta);
+            size_t increase_brk = size - new_meta->getSize();
+            void* p = sbrk(increase_brk);
+            if ((intptr_t)p == -1)
+                return nullptr;
+            new_meta->setSize(increase_brk + old_size);
+            void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+            return new_p;
+        }
     }
     void* new_p = smalloc(size);
     if (new_p == nullptr)
