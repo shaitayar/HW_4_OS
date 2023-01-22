@@ -21,16 +21,16 @@ public:
     MallocMetadata(size_t size, bool is_free):size(size), is_free(is_free), next(nullptr), prev(nullptr), cookie(global_cookie) {}
     MallocMetadata(size_t size, bool is_free, MallocMetadata* next, MallocMetadata * prev):
     size(size), is_free(is_free), next(next), prev(prev), cookie(global_cookie){}
-    size_t getSize(){return this->size;}
-    bool getIsFree(){return is_free;}
-    MallocMetadata* getNext(){return next;}
-    MallocMetadata* getPrev(){return prev;}
+    size_t getSize(){this->checkCookie(); return this->size;}
+    bool getIsFree(){this->checkCookie(); return is_free;}
+    MallocMetadata* getNext(){this->checkCookie(); return next;}
+    MallocMetadata* getPrev(){this->checkCookie(); return prev;}
     void checkCookie(){if (cookie != global_cookie){exit(DEADBEEF);}}
 
-    void setSize(size_t new_size){this->size = new_size;}
-    void setIsFree(bool new_is_free){this->is_free = new_is_free;}
-    void setNext(MallocMetadata* new_next){this->next = new_next;}
-    void setPrev(MallocMetadata* new_prev){this->prev = new_prev;}
+    void setSize(size_t new_size){this->checkCookie(); this->size = new_size;}
+    void setIsFree(bool new_is_free){this->checkCookie(); this->is_free = new_is_free;}
+    void setNext(MallocMetadata* new_next){this->checkCookie(); this->next = new_next;}
+    void setPrev(MallocMetadata* new_prev){this->checkCookie(); this->prev = new_prev;}
 };
 
 MallocMetadata* meta_data_list = nullptr;
