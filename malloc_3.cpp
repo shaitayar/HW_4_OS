@@ -18,9 +18,9 @@ class MallocMetadata{
     MallocMetadata* prev;
 
 public:
-    MallocMetadata(size_t size, bool is_free):size(size), is_free(is_free), next(nullptr), prev(nullptr), cookie(global_cookie) {}
+    MallocMetadata(size_t size, bool is_free):cookie(global_cookie), size(size), is_free(is_free), next(nullptr), prev(nullptr) {}
     MallocMetadata(size_t size, bool is_free, MallocMetadata* next, MallocMetadata * prev):
-    size(size), is_free(is_free), next(next), prev(prev), cookie(global_cookie){}
+            cookie(global_cookie), size(size), is_free(is_free), next(next), prev(prev){}
     size_t getSize(){this->checkCookie(); return this->size;}
     bool getIsFree(){this->checkCookie(); return is_free;}
     MallocMetadata* getNext(){this->checkCookie(); return next;}
