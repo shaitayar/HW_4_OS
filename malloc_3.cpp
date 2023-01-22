@@ -6,21 +6,26 @@
 
 #define MAX_SIZE (1e8)
 #define MMAP_TREASH (128*1024)
+#define DEADBEEF (0xdeadbeef)
 #define MIN_SPLIT_SIZE (128)
+int global_cookie = rand() % RAND_MAX;
+
 class MallocMetadata{
+    int cookie;
     size_t size;
     bool is_free;
     MallocMetadata* next;
     MallocMetadata* prev;
 
 public:
-    MallocMetadata(size_t size, bool is_free):size(size), is_free(is_free), next(nullptr), prev(nullptr){}
+    MallocMetadata(size_t size, bool is_free):size(size), is_free(is_free), next(nullptr), prev(nullptr), cookie(global_cookie) {}
     MallocMetadata(size_t size, bool is_free, MallocMetadata* next, MallocMetadata * prev):
-    size(size), is_free(is_free), next(next), prev(prev){}
+    size(size), is_free(is_free), next(next), prev(prev), cookie(global_cookie){}
     size_t getSize(){return this->size;}
     bool getIsFree(){return is_free;}
     MallocMetadata* getNext(){return next;}
     MallocMetadata* getPrev(){return prev;}
+    void checkCookie(){if (cookie != global_cookie){exit(DEADBEEF);}}
 
     void setSize(size_t new_size){this->size = new_size;}
     void setIsFree(bool new_is_free){this->is_free = new_is_free;}
@@ -138,6 +143,7 @@ void deleteFromMeta(MallocMetadata** list ,MallocMetadata* old_meta)
         MallocMetadata* pre = *list;
         while(it != nullptr)
         {
+            it->checkCookie();
             if (it == old_meta)
             {
                 pre->setNext(it->getNext());
@@ -175,6 +181,7 @@ void* findFreeBlock(size_t size)
     MallocMetadata* it_min = nullptr;
     while(it != nullptr)
     {
+        it->checkCookie();
         if (it->getIsFree() && it->getSize()>=size)
         {
             if (it->getSize() < min_size)
@@ -277,6 +284,7 @@ void * smalloc (size_t size){
     MallocMetadata* wilderness = getWilderness();
     if (wilderness != nullptr && wilderness->getIsFree())
     {
+        wilderness->checkCookie();
         size_t increase_brk = size - wilderness->getSize();
         void* p = sbrk(increase_brk);
         if ((intptr_t)p == -1)
@@ -313,7 +321,7 @@ void sfree (void * p)
     if (p == nullptr)
         return;
     MallocMetadata* meta_ptr = ((MallocMetadata*)(((char*)p) - _size_meta_data()));
-
+    meta_ptr->checkCookie();
     // If the block allocated by mmap
     if (meta_ptr->getSize() >= MMAP_TREASH)
     {
@@ -355,6 +363,7 @@ MallocMetadata* mergeWithLowerBlock(MallocMetadata* meta_ptr)
     MallocMetadata* pre = meta_ptr->getPrev();
     if (meta_ptr == nullptr || pre == nullptr)
         return nullptr;
+    pre->checkCookie();
     deleteFromMeta(&meta_data_list, meta_ptr);
     pre->setSize(pre->getSize() + meta_ptr->getSize() + _size_meta_data());
     pre->setIsFree(false);
@@ -371,6 +380,7 @@ MallocMetadata* mergeWithHigherBlock(MallocMetadata* meta_ptr)
     MallocMetadata* next = meta_ptr->getNext();
     if (meta_ptr == nullptr || next == nullptr)
         return nullptr;
+    next->checkCookie();
     deleteFromMeta(&meta_data_list, next);
     meta_ptr->setSize(next->getSize() + meta_ptr->getSize() + _size_meta_data());
     return meta_ptr;
@@ -386,7 +396,8 @@ void * srealloc(void * oldp, size_t size)
         void* new_p = smalloc(size);
         return new_p;
     }
-    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));\
+    MallocMetadata* old_meta = (MallocMetadata*) ((((char*)oldp) - _size_meta_data()));
+    old_meta->checkCookie();
     ///This case handle trying to realloc a map area
     if (old_meta->getSize() >= MMAP_TREASH)
     {
