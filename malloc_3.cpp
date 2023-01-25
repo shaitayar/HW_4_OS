@@ -530,41 +530,41 @@ void * srealloc(void * oldp, size_t size)
 }
 //
 
-void pirntData()
-{
-    std::cout << "aloc blocks:" << _num_allocated_blocks() << std::endl;
-    std::cout << "aloc bytes:" << _num_allocated_bytes() << std::endl;
-    std::cout << "free blocks" << _num_free_blocks() << std::endl;
-    std::cout << "free bytes:" << _num_free_bytes() << std::endl << std::endl;
-
-}
-int main() {
-
-    void* p = sbrk(0);
-    size_t head = _size_meta_data();
-    void* pad1 = (char *) smalloc(32);
-    void* a = (char *) smalloc(32);
-    void* b = (char *) smalloc(32);
-    void* c= (char*) smalloc(32);
-    pirntData();
-    sfree(a);
-    sfree(c);
-    pirntData();
-    void* new_b= (char*) srealloc(b, 32+4*_size_meta_data()*2);
-    if (a == new_b)
-        std::cout << "a = new_b" << std::endl;
-    pirntData();
-    sfree(new_b);
-    sfree(pad1);
-    std::cout << "new_b:" << (int*)new_b << std::endl;
-    std::cout << "a:" << (int*)a << std::endl;
-    std::cout << "b:" << (int*)b << std::endl;
-    std::cout << "c:" << (int*)c << std::endl;
-//    void* new_2b= (char*) srealloc(new_b, 64 + _size_meta_data());
-
-    sfree(new_b);
-    pirntData();
-    MallocMetadata m=MallocMetadata(5,false);
-    m.getSize();
-    int d = 0;
-}
+//void pirntData()
+//{
+//    std::cout << "aloc blocks:" << _num_allocated_blocks() << std::endl;
+//    std::cout << "aloc bytes:" << _num_allocated_bytes() << std::endl;
+//    std::cout << "free blocks" << _num_free_blocks() << std::endl;
+//    std::cout << "free bytes:" << _num_free_bytes() << std::endl << std::endl;
+//
+//}
+//int main() {
+//
+//    void* p = sbrk(0);
+//    size_t head = _size_meta_data();
+//    void* pad1 = (char *) smalloc(32);
+//    void* a = (char *) smalloc(32);
+//    void* b = (char *) smalloc(32);
+//    void* c= (char*) smalloc(32);
+//    pirntData();
+//    sfree(a);
+//    sfree(c);
+//    pirntData();
+//    void* new_b= (char*) srealloc(b, 32+4*_size_meta_data()*2);
+//    if (a == new_b)
+//        std::cout << "a = new_b" << std::endl;
+//    pirntData();
+//    sfree(new_b);
+//    sfree(pad1);
+//    std::cout << "new_b:" << (int*)new_b << std::endl;
+//    std::cout << "a:" << (int*)a << std::endl;
+//    std::cout << "b:" << (int*)b << std::endl;
+//    std::cout << "c:" << (int*)c << std::endl;
+////    void* new_2b= (char*) srealloc(new_b, 64 + _size_meta_data());
+//
+//    sfree(new_b);
+//    pirntData();
+//    MallocMetadata m=MallocMetadata(5,false);
+//    m.getSize();
+//    int d = 0;
+//}
