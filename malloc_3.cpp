@@ -6,7 +6,7 @@
 
 #define MAX_SIZE (1e8)
 #define MMAP_TREASH (128*1024)
-#define DEADBEEF (0xDEADBEEF)
+#define DEADBEEF (0xdeadbeef)
 #define MIN_SPLIT_SIZE (128)
 int global_cookie = rand() % RAND_MAX;
 
@@ -21,7 +21,7 @@ public:
     MallocMetadata(size_t size, bool is_free):cookie(global_cookie), size(size), is_free(is_free), next(nullptr), prev(nullptr) {}
     MallocMetadata(size_t size, bool is_free, MallocMetadata* next, MallocMetadata * prev):
             cookie(global_cookie), size(size), is_free(is_free), next(next), prev(prev){}
-    size_t getSize(){exit(DEADBEEF);this->checkCookie(); return this->size;}
+    size_t getSize(){this->checkCookie(); return this->size;}
     bool getIsFree(){this->checkCookie(); return is_free;}
     MallocMetadata* getNext(){this->checkCookie(); return next;}
     MallocMetadata* getPrev(){this->checkCookie(); return prev;}
@@ -530,14 +530,14 @@ void * srealloc(void * oldp, size_t size)
 }
 //
 
-//void pirntData()
-//{
-//    std::cout << "aloc blocks:" << _num_allocated_blocks() << std::endl;
-//    std::cout << "aloc bytes:" << _num_allocated_bytes() << std::endl;
-//    std::cout << "free blocks" << _num_free_blocks() << std::endl;
-//    std::cout << "free bytes:" << _num_free_bytes() << std::endl << std::endl;
-//
-//}
+void pirntData()
+{
+    std::cout << "aloc blocks:" << _num_allocated_blocks() << std::endl;
+    std::cout << "aloc bytes:" << _num_allocated_bytes() << std::endl;
+    std::cout << "free blocks" << _num_free_blocks() << std::endl;
+    std::cout << "free bytes:" << _num_free_bytes() << std::endl << std::endl;
+
+}
 //int main() {
 //
 //    void* p = sbrk(0);
@@ -564,7 +564,5 @@ void * srealloc(void * oldp, size_t size)
 //
 //    sfree(new_b);
 //    pirntData();
-//    MallocMetadata m=MallocMetadata(5,false);
-//    m.getSize();
 //    int d = 0;
 //}
