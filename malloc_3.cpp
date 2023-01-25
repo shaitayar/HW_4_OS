@@ -6,9 +6,11 @@
 
 #define MAX_SIZE (1e8)
 #define MMAP_TREASH (128*1024)
-#define DEADBEEF (0xdeadbeef)
+#define DEADBEEF (0xDEADBEEF)
 #define MIN_SPLIT_SIZE (128)
 int global_cookie = rand() % RAND_MAX;
+
+size_t _size_meta_data();
 
 class MallocMetadata{
     int cookie;
@@ -21,10 +23,12 @@ public:
     MallocMetadata(size_t size, bool is_free):cookie(global_cookie), size(size), is_free(is_free), next(nullptr), prev(nullptr) {}
     MallocMetadata(size_t size, bool is_free, MallocMetadata* next, MallocMetadata * prev):
             cookie(global_cookie), size(size), is_free(is_free), next(next), prev(prev){}
-    size_t getSize(){this->checkCookie(); return this->size;}
+    size_t getSize(){exit(DEADBEEF);this->checkCookie(); return this->size;}
     bool getIsFree(){this->checkCookie(); return is_free;}
     MallocMetadata* getNext(){this->checkCookie(); return next;}
     MallocMetadata* getPrev(){this->checkCookie(); return prev;}
+    void* getMallocContent(){this->checkCookie(); return ((void*)(((char*)this) + _size_meta_data()));}
+
     void checkCookie(){if (cookie != global_cookie){exit(DEADBEEF);}}
 
     void setSize(size_t new_size){this->checkCookie(); this->size = new_size;}
@@ -291,7 +295,7 @@ void * smalloc (size_t size){
             return nullptr;
         wilderness->setIsFree(false);
         wilderness->setSize(increase_brk + wilderness->getSize());
-        return ((void*)(((char*)wilderness) + _size_meta_data())); // need to return the address excluding the meta struct
+        return (wilderness->getMallocContent()); // need to return the address excluding the meta struct
     }
 
     size_t size_with_meta = size + _size_meta_data();
@@ -302,7 +306,7 @@ void * smalloc (size_t size){
     MallocMetadata* meta_ptr = ((MallocMetadata*)p);
     *meta_ptr = new_meta;
     pushBackToMeta(&meta_data_list, meta_ptr);
-    return ((void*)(((char*)p) + _size_meta_data())); // need to return the address excluding the meta struct
+    return meta_ptr->getMallocContent(); // need to return the address excluding the meta struct
 }
 
 
@@ -429,7 +433,7 @@ void * srealloc(void * oldp, size_t size)
             {
                 new_meta = mergeWithLowerBlock(old_meta);
                 splitBlock(new_meta, size);
-                void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+                void* new_p = new_meta->getMallocContent();
                 memmove(new_p, oldp, size);
                 return new_p;
             }
@@ -442,7 +446,7 @@ void * srealloc(void * oldp, size_t size)
                 if ((intptr_t)p == -1)
                     return nullptr;
                 new_meta->setSize(increase_brk + new_meta->getSize());
-                void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+                void* new_p = new_meta->getMallocContent();
                 memmove(new_p, oldp, size);
                 return new_p;
             }
@@ -457,7 +461,7 @@ void * srealloc(void * oldp, size_t size)
         if ((intptr_t)p == -1)
             return nullptr;
         old_meta->setSize(increase_brk + old_size);
-        void* new_p = ((void*)(((char*)old_meta) + _size_meta_data()));
+        void* new_p = old_meta->getMallocContent();
         return new_p;
     }
     else
@@ -470,7 +474,7 @@ void * srealloc(void * oldp, size_t size)
             {
                 new_meta = mergeWithHigherBlock(old_meta);
                 splitBlock(new_meta, size);
-                void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+                void* new_p = new_meta->getMallocContent();
                 memmove(new_p, oldp, size);
                 return new_p;
             }
@@ -482,7 +486,7 @@ void * srealloc(void * oldp, size_t size)
         new_meta = mergeWithHigherBlock(old_meta);
         new_meta = mergeWithLowerBlock(new_meta);
         splitBlock(new_meta, size);
-        void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+        void* new_p = new_meta->getMallocContent();
         memmove(new_p, oldp, size);
         return new_p;
     }
@@ -502,7 +506,7 @@ void * srealloc(void * oldp, size_t size)
                         return nullptr;
                     new_meta->setSize(increase_brk + new_meta->getSize());
                     new_meta->setIsFree(false);
-                    void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+                    void* new_p = new_meta->getMallocContent();
                     memmove(new_p, oldp, size);
                     return new_p;
                 }
@@ -517,7 +521,7 @@ void * srealloc(void * oldp, size_t size)
                 return nullptr;
             new_meta->setSize(increase_brk + new_meta->getSize());
             new_meta->setIsFree(false);
-            void* new_p = ((void*)(((char*)new_meta) + _size_meta_data()));
+            void* new_p = new_meta->getMallocContent();
             return new_p;
         }
     }
@@ -564,5 +568,7 @@ void pirntData()
 //
 //    sfree(new_b);
 //    pirntData();
+//    MallocMetadata m=MallocMetadata(5,false);
+//    m.getSize();
 //    int d = 0;
 //}
