@@ -530,14 +530,14 @@ void * srealloc(void * oldp, size_t size)
 }
 //
 
-void pirntData()
-{
-    std::cout << "aloc blocks:" << _num_allocated_blocks() << std::endl;
-    std::cout << "aloc bytes:" << _num_allocated_bytes() << std::endl;
-    std::cout << "free blocks" << _num_free_blocks() << std::endl;
-    std::cout << "free bytes:" << _num_free_bytes() << std::endl << std::endl;
-
-}
+//void pirntData()
+//{
+//    std::cout << "aloc blocks:" << _num_allocated_blocks() << std::endl;
+//    std::cout << "aloc bytes:" << _num_allocated_bytes() << std::endl;
+//    std::cout << "free blocks" << _num_free_blocks() << std::endl;
+//    std::cout << "free bytes:" << _num_free_bytes() << std::endl << std::endl;
+//
+//}
 //int main() {
 //
 //    void* p = sbrk(0);
